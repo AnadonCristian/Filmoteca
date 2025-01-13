@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">Filmoteca</string>
+    <string name="film_list_title">Lista de peliculas</string>
+    <string name="button_view_film_A">Ver pelicula A</string>
+    <string name="button_view_film_B">Ver pelicula B</string>
+    <string name="button_about">Acerca de</string>
+    <string name="film_data_title">Datos de la película</string>
+    <string name="button_view_related_film">Ver película relacionada</string>
+    <string name="button_edit_film">Editar película</string>
+    <string name="button_back_to_main">Volver a la principal</string>
+    <string name="film_edit_title">Editando película</string>
+    <string name="button_save">Guardar</string>
+    <string name="button_cancel">Cancelar</string>
+    <string name="about_screen_title">Esta aplicación la ha creado Cristian</string>
+    <string name="button_go_to_website">Ir al sitio web</string>
+    <string name="button_support">Soporte</string>
+    <string name="button_back">Volver</string>
+    <string name="Functionality_not_implemented"> Funcionalidad no implementada</string>
+    <string name="incidencia_con_filmoteca" >email</string>
+    <string-array name="genero_list">
+        <item>Acción</item>
+        <item>Drama</item>
+        <item>Comedia</item>
+        <item>Terror</item>
+        <item>Sci-Fi</item>
+    </string-array>
+
+    <string-array name="formato_list">
+        <item>DVD</item>
+        <item>Blu-Ray</item>
+        <item>Online</item>
+    </string-array>
+</resources>
