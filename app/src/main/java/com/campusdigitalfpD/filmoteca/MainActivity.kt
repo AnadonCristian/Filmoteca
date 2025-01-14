@@ -79,42 +79,39 @@ class MainActivity : ComponentActivity() {
                     ) {
                         composable("filmList") {
                             FilmListScreen(
-                                navigateFilm = { filmName ->
-                                    navController.navigate("filmData/$filmName")
+                                navigateFilm = { film ->
+                                    navController.navigate("filmData/${film.id}")
                                 },
                                 navigateAbout = { navController.navigate("about") }
                             )
                         }
                         composable(
-                            "filmData/{filmName}",
-                            arguments = listOf(navArgument("filmName") { type = NavType.StringType })
+                            "filmData/{filmId}",
+                            arguments = listOf(navArgument("filmId") { type = NavType.IntType })
                         ) { backStackEntry ->
-                            val filmName = backStackEntry.arguments?.getString("filmName") ?: ""
-                            val viewModel: FilmDataViewModel = viewModel(
-                                factory = FilmDataViewModelFactory(backStackEntry.savedStateHandle)
-                            )
-                            FilmDataScreen(
-                                filmName = filmName,
-                                year = "2020",
-                                genero = "Action",
-                                formato = "DVD",
-                                notas = "",
-                                director = "Jonh Doe",
-                                imdbUrl = "https://www.google.com",
-                                navigateRelated = {
-
-                                    navController.navigate("filmData/RelatedFilmName")
-                                },
-                                navigateEdit = { navController.navigate("filmEdit") },
-                                navigateBack = {
-                                    navController.navigate("filmList") {
-                                        popUpTo(navController.graph.startDestinationId) {
-                                            inclusive = true
+                            val filmId = backStackEntry.arguments?.getInt("filmId") ?: 0
+                            val film = FilmDataSource.films.find { it.id == filmId }
+                            film?.let {
+                                FilmDataScreen(
+                                    filmName = it.title ?: "",
+                                    director = it.director ?: "",
+                                    notas = it.comments ?: "",
+                                    year = it.year.toString(),
+                                    genero = it.genre.toString(),
+                                    formato = it.format.toString(),
+                                    imdbUrl = it.imdbUrl ?: "",
+                                    imageResId = it.imageResId,
+                                    navigateRelated = { navController.navigate("filmData/RelatedFilmName") },
+                                    navigateEdit = { navController.navigate("filmEdit") },
+                                    navigateBack = {
+                                        navController.navigate("filmList") {
+                                            popUpTo(navController.graph.startDestinationId) {
+                                                inclusive = true
+                                            }
                                         }
-                                    }
-                                },
-
-                            )
+                                    },
+                                )
+                            }
                         }
                         composable("filmEdit") {
                             FilmEditScreen(
@@ -226,7 +223,7 @@ class MainActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun FilmListScreen(navigateFilm: (String) -> Unit,
+    fun FilmListScreen(navigateFilm: (Film) -> Unit,
                        navigateAbout: () -> Unit) {
         val films = FilmDataSource.films
         Scaffold(
@@ -245,7 +242,7 @@ class MainActivity : ComponentActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 items(films) { film ->
-                    FilmItem(film = film, navigateFilm = navigateFilm)
+                    FilmItem(film = film, navigateFilm = { navigateFilm(film) })
                 }
                 item {
                     Button(onClick = navigateAbout) {
@@ -266,6 +263,7 @@ class MainActivity : ComponentActivity() {
         genero : String,
         formato : String,
         imdbUrl : String,
+        imageResId: Int,
         navigateRelated: () -> Unit,
         navigateEdit: () -> Unit,
         navigateBack: () -> Unit,
@@ -294,7 +292,7 @@ class MainActivity : ComponentActivity() {
             )
             {
                 Image(
-                    painter = painterResource(id = R.drawable.sonic),
+                    painter = painterResource(id = imageResId),
                     contentDescription = "imagen pelicula",
                     modifier = Modifier.size(160.dp)
                 )
@@ -331,13 +329,13 @@ class MainActivity : ComponentActivity() {
                     }
                     Button(onClick = navigateBack) {
                         Text("Volver a pagina principal")
-                }
-
-
                     }
+
+
                 }
             }
         }
+    }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
@@ -373,140 +371,140 @@ class MainActivity : ComponentActivity() {
                         }
 
 
-            }
-        )
+                    }
+                )
             }
         ){ innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            horizontalAlignment = Alignment.Start,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.Top
-            ){
-                Image(
-                    painter = painterResource(id = R.drawable.sonic),
-                    contentDescription = "imagen pelicula",
-                    modifier = Modifier.size(160.dp)
-                )
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                )
-
-                        {
-                            Button(onClick = { /* Implementar tomar fotografía */ }) {
-                                Text("Tomar una fotografía")
-                            }
-                            Button(onClick = { /* Implementar seleccionar imagen */ }) {
-                                Text("Seleccionar una imagen")
-                            }
-                        }
-                    }
-            TextField(
-                value = titulo,
-                onValueChange = { titulo = it },
-                label = { Text("Título de la película") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            TextField(
-                value = director,
-                onValueChange = { director = it },
-                label = { Text("Director de la película") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            TextField(
-                value = anyo.toString(),
-                onValueChange = { if (it.toIntOrNull() != null) anyo = it.toInt() },
-                label = { Text("Año de estreno") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
-            )
-            Box {
-                TextField(
-                    value = generoList[genero],
-                    onValueChange = {},
-                    label = { Text("Género") },
-                    readOnly = true,
-                    modifier = Modifier.fillMaxWidth()
-                        .clickable { expandedGenero = true }
-                )
-                DropdownMenu(
-                    expanded = expandedGenero,
-                    onDismissRequest = { expandedGenero = false }
-                ) {
-                    generoList.forEachIndexed { index, label ->
-                        DropdownMenuItem(
-                            onClick = {
-                                genero = index
-                                expandedGenero = false
-                            }
-                        ) {
-                            Text(text = label)
-                        }
-                    }
-                }
-            }
-            Box {
-                TextField(
-                    value = formatoList[formato],
-                    onValueChange = {},
-                    label = { Text("Formato") },
-                    readOnly = true,
-                    modifier = Modifier.fillMaxWidth()
-                        .clickable { expandedFormato = true }
-                )
-                DropdownMenu(
-                    expanded = expandedFormato,
-                    onDismissRequest = { expandedFormato = false }
-                ) {
-                    formatoList.forEachIndexed { index, label ->
-                        DropdownMenuItem(
-                            onClick = {
-                                formato = index
-                                expandedFormato = false
-                            }
-                        ) {
-                            Text(text = label)
-                        }
-                    }
-                }
-            }
-            TextField(
-                value = url,
-                onValueChange = { url = it },
-                label = { Text("Enlace a IMDB") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            TextField(
-                value = comentarios,
-                onValueChange = { comentarios = it },
-                label = { Text("Comentarios") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Button(onClick = onSave) {
-                    Text("Guardar")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.Top
+                ){
+                    Image(
+                        painter = painterResource(id = R.drawable.sonic),
+                        contentDescription = "imagen pelicula",
+                        modifier = Modifier.size(160.dp)
+                    )
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    )
+
+                    {
+                        Button(onClick = { /* Implementar tomar fotografía */ }) {
+                            Text("Tomar una fotografía")
+                        }
+                        Button(onClick = { /* Implementar seleccionar imagen */ }) {
+                            Text("Seleccionar una imagen")
+                        }
+                    }
                 }
-                Button(onClick = onCancel) {
-                    Text("Cancelar")
+                TextField(
+                    value = titulo,
+                    onValueChange = { titulo = it },
+                    label = { Text("Título de la película") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                TextField(
+                    value = director,
+                    onValueChange = { director = it },
+                    label = { Text("Director de la película") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                TextField(
+                    value = anyo.toString(),
+                    onValueChange = { if (it.toIntOrNull() != null) anyo = it.toInt() },
+                    label = { Text("Año de estreno") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Box {
+                    TextField(
+                        value = generoList[genero],
+                        onValueChange = {},
+                        label = { Text("Género") },
+                        readOnly = true,
+                        modifier = Modifier.fillMaxWidth()
+                            .clickable { expandedGenero = true }
+                    )
+                    DropdownMenu(
+                        expanded = expandedGenero,
+                        onDismissRequest = { expandedGenero = false }
+                    ) {
+                        generoList.forEachIndexed { index, label ->
+                            DropdownMenuItem(
+                                onClick = {
+                                    genero = index
+                                    expandedGenero = false
+                                }
+                            ) {
+                                Text(text = label)
+                            }
+                        }
+                    }
+                }
+                Box {
+                    TextField(
+                        value = formatoList[formato],
+                        onValueChange = {},
+                        label = { Text("Formato") },
+                        readOnly = true,
+                        modifier = Modifier.fillMaxWidth()
+                            .clickable { expandedFormato = true }
+                    )
+                    DropdownMenu(
+                        expanded = expandedFormato,
+                        onDismissRequest = { expandedFormato = false }
+                    ) {
+                        formatoList.forEachIndexed { index, label ->
+                            DropdownMenuItem(
+                                onClick = {
+                                    formato = index
+                                    expandedFormato = false
+                                }
+                            ) {
+                                Text(text = label)
+                            }
+                        }
+                    }
+                }
+                TextField(
+                    value = url,
+                    onValueChange = { url = it },
+                    label = { Text("Enlace a IMDB") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                TextField(
+                    value = comentarios,
+                    onValueChange = { comentarios = it },
+                    label = { Text("Comentarios") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Button(onClick = onSave) {
+                        Text("Guardar")
+                    }
+                    Button(onClick = onCancel) {
+                        Text("Cancelar")
+                    }
                 }
             }
-        }
         }
     }
     @Composable
-    fun FilmItem(film: Film, navigateFilm: (String) -> Unit) {
+    fun FilmItem(film: Film, navigateFilm: (Int) -> Unit) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { navigateFilm(film.title ?: "") }
+                .clickable { navigateFilm(film.id) }
                 .padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -524,7 +522,7 @@ class MainActivity : ComponentActivity() {
     }
     data class Film(
         var id: Int = 0,
-        var imageResId: Int = 0, // Propiedades de la clase
+        var imageResId: Int = 0,
         var title: String? = null,
         var director: String? = null,
         var year: Int = 0,
@@ -646,5 +644,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
-

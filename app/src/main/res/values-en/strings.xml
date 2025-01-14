@@ -1,0 +1,21 @@
+
+<resources>
+    <string name="app_name">Filmoteca</string>
+    <string name="about_screen_title">This application was created by Cristian</string>
+    <string name="button_go_to_website">Go to website</string>
+    <string name="button_support">Support</string>
+    <string name="button_back">Back</string>
+    <string name="film_list_title">Film List</string>
+    <string name="button_view_film_A">view A</string>
+    <string name="button_view_film_B">view B</string>
+    <string name="button_about">About</string>
+    <string name="film_data_title">films dats</string>
+    <string name="button_view_related_film">View related film</string>
+    <string name="button_edit_film">Edit film</string>
+    <string name="button_back_to_main">back</string>
+    <string name="film_edit_title">Edit</string>
+    <string name="button_save">save</string>
+    <string name="button_cancel">Cancel</string>
+    <string name="Functionality_not_implemented"> not implemented</string>
+    <string name="incidencia_con_filmoteca" >email</string>
+</resources>
