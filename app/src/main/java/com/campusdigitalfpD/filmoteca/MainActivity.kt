@@ -6,8 +6,11 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +24,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
@@ -55,8 +60,6 @@ import com.campusdigitalfpD.filmoteca.MainActivity.FilmDataSource.films
 import com.campusdigitalfpD.filmoteca.ui.theme.FilmotecaTheme
 
 
-const val RESULT_OK = 1
-const val RESULT_CANCELED = 0
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -216,14 +219,29 @@ class MainActivity : ComponentActivity() {
         var expanded by remember { mutableStateOf(false) }
         val context = LocalContext.current
         val films = FilmDataSource.films
+        var isMultiSelectMode by remember { mutableStateOf(false) }
+        var selectedFilms by remember { mutableStateOf(setOf<Int>()) }
+
         Scaffold(
             topBar = {
                 TopAppBar(
                     title = { Text("Film List") },
                     actions = {
-                        IconButton(onClick = { expanded = true }) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "Menu")
+                        if(isMultiSelectMode){
+                            IconButton(onClick = {
+                                films.removeAll { it.id in selectedFilms }
+                                isMultiSelectMode = false
+                                selectedFilms = emptySet()
+                            }) {
+                                Icon(Icons.Default.Delete, contentDescription = "Elimina")
+                            }
+                        }else{
+                            IconButton(onClick = {
+                                expanded = true }) {
+                                Icon(Icons.Default.Menu, contentDescription = "Menu")
+                            }
                         }
+
                         DropdownMenu(
                             expanded = expanded,
                             onDismissRequest = { expanded = false }
@@ -259,7 +277,26 @@ class MainActivity : ComponentActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 items(films) { film ->
-                    FilmItem(film = film, navigateFilm = { navigateFilm(film) })
+                    FilmItem(
+                        film = film,
+                        navigateFilm = { navigateFilm(film) },
+                        isMultiSelectMode = isMultiSelectMode,
+                        isSelected = selectedFilms.contains(film.id),
+                        onLongClick ={
+                            isMultiSelectMode = true
+                            selectedFilms = selectedFilms + film.id
+                        },
+                        onSelect = { isSelected ->
+
+                            selectedFilms = if (isSelected) {
+                              selectedFilms + film.id
+                            } else {
+                                selectedFilms - film.id
+                            }
+                        }
+                    )
+
+
                 }
                 item {
                     Button(onClick = navigateAbout) {
@@ -541,15 +578,35 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @OptIn(ExperimentalFoundationApi::class)
     @Composable
-    fun FilmItem(film: Film, navigateFilm: (Int) -> Unit) {
+    fun FilmItem(film: Film,
+                 navigateFilm: (Int) -> Unit,
+                 isMultiSelectMode: Boolean,
+                 isSelected : Boolean,
+                 onLongClick : () -> Unit,
+                 onSelect : (Boolean) -> Unit
+    ) {
+        val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primary
+        else MaterialTheme.colorScheme.background
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { navigateFilm(film.id) }
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(backgroundColor)
+                    .combinedClickable(
+                        onClick = {
+                            if (isMultiSelectMode) {
+                                onSelect(!isSelected)
+                            } else {
+                                navigateFilm(film.id)
+                            }
+                        },
+                        onLongClick = onLongClick
+                    )
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
                 painter = painterResource(id = film.imageResId),
