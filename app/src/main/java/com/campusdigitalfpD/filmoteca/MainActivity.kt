@@ -41,6 +41,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -220,7 +221,7 @@ class MainActivity : ComponentActivity() {
     ) {
         var expanded by remember { mutableStateOf(false) }
         val context = LocalContext.current
-        val films = FilmDataSource.films
+        val films = remember { mutableStateListOf(*FilmDataSource.films.toTypedArray()) }
         var isMultiSelectMode by remember { mutableStateOf(false) }
         var selectedFilms by remember { mutableStateOf(setOf<Int>()) }
 
