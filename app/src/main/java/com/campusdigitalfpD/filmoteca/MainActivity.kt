@@ -1,5 +1,4 @@
 package com.campusdigitalfpD.filmoteca
-
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -7,8 +6,6 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.expandHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,11 +21,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,32 +33,26 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.campusdigitalfpD.filmoteca.ui.theme.FilmotecaTheme
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.text.input.KeyboardType
 import com.campusdigitalfpD.filmoteca.MainActivity.FilmDataSource.films
-import com.campusdigitalfpD.filmoteca.R
+import com.campusdigitalfpD.filmoteca.ui.theme.FilmotecaTheme
 
 
 const val RESULT_OK = 1
@@ -122,11 +111,17 @@ class MainActivity : ComponentActivity() {
                             FilmEditScreen(
                                 navController = navController,
                                 onSave = {
-                                    navController.previousBackStackEntry?.savedStateHandle?.set("editResult", RESULT_OK)
+                                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                                        "editResult",
+                                        RESULT_OK
+                                    )
                                     navController.popBackStack()
                                 },
                                 onCancel = {
-                                    navController.previousBackStackEntry?.savedStateHandle?.set("editResult", RESULT_CANCELED)
+                                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                                        "editResult",
+                                        RESULT_CANCELED
+                                    )
                                     navController.popBackStack()
                                 },
                                 navigateBack = { navController.popBackStack() }
@@ -149,7 +144,6 @@ class MainActivity : ComponentActivity() {
     }
 
 
-
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun AboutScreen(modifier: Modifier, context: Context, navigateBack: () -> Unit) {
@@ -158,15 +152,26 @@ class MainActivity : ComponentActivity() {
                 TopAppBar(
                     title = { Text("Datos de Pelicula") },
                     navigationIcon = {
-                        Button(onClick = { navigateBack() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                        Row {
+                            Box(modifier = Modifier.clickable { navigateBack() }) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                                    contentDescription = "Ir a pantalla principal"
+                                )
+                            }
+                            Button(onClick = { navigateBack() }) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Volver"
+                                )
+                            }
                         }
+
                     }
                 )
-
             }
-        )
-        { innerpadding ->
+
+        ) { innerpadding ->
             Column(
                 modifier = modifier
                     .fillMaxSize()
@@ -201,10 +206,13 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun FilmListScreen(navigateFilm: (Film) -> Unit,
-                       navigateAbout: () -> Unit) {
+    fun FilmListScreen(
+        navigateFilm: (Film) -> Unit,
+        navigateAbout: () -> Unit
+    ) {
         var expanded by remember { mutableStateOf(false) }
         val context = LocalContext.current
         val films = FilmDataSource.films
@@ -266,25 +274,36 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun FilmDataScreen(
         filmName: String,
-        director : String,
-        notas : String,
-        year : String,
-        genero : String,
-        formato : String,
-        imdbUrl : String,
+        director: String,
+        notas: String,
+        year: String,
+        genero: String,
+        formato: String,
+        imdbUrl: String,
         imageResId: Int,
         navigateRelated: () -> Unit,
         navigateEdit: () -> Unit,
         navigateBack: () -> Unit,
-        editResult: Int? =null
+        editResult: Int? = null
     ) {
         Scaffold(
             topBar = {
                 TopAppBar(
                     title = { Text("Datos de Pelicula") },
                     navigationIcon = {
-                        Button(onClick = { navigateBack() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                        Row {
+                            Box(modifier = Modifier.clickable { navigateBack() }) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                                    contentDescription = "Ir a pantalla principal"
+                                )
+                            }
+                            Button(onClick = { navigateBack() }) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Volver"
+                                )
+                            }
                         }
                     }
                 )
@@ -348,10 +367,12 @@ class MainActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun FilmEditScreen(navController: NavController,
-                       onSave: () -> Unit,
-                       onCancel: () -> Unit,
-                       navigateBack: () -> Unit,) {
+    fun FilmEditScreen(
+        navController: NavController,
+        onSave: () -> Unit,
+        onCancel: () -> Unit,
+        navigateBack: () -> Unit,
+    ) {
         var titulo by remember { mutableStateOf("") }
         var director by remember { mutableStateOf("") }
         var anyo by remember { mutableStateOf(1997) }
@@ -364,26 +385,37 @@ class MainActivity : ComponentActivity() {
         var expandedFormato by remember { mutableStateOf(false) }
 
         val context = LocalContext.current
-        val generoList = listOf("Action","comedia","drama","terror","ciencia ficcion")
-        val formatoList = listOf("DVD","Blu-ray","VHS","Digital")
+        val generoList = listOf("Action", "comedia", "drama", "terror", "ciencia ficcion")
+        val formatoList = listOf("DVD", "Blu-ray", "VHS", "Digital")
 
         var genero by remember { mutableStateOf(0) }
         var formato by remember { mutableStateOf(1) }
 
-        Scaffold  (
+        Scaffold(
             topBar = {
                 TopAppBar(
                     title = { Text("Editar texto") },
                     navigationIcon = {
-                        Button(onClick = { navigateBack() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                        Row {
+                            Box(modifier = Modifier.clickable { navigateBack() }) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                                    contentDescription = "Ir a pantalla principal"
+                                )
+                            }
+                            Button(onClick = { navigateBack() }) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Volver"
+                                )
+                            }
+
+
                         }
-
-
                     }
                 )
             }
-        ){ innerPadding ->
+        ) { innerPadding ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -395,7 +427,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalAlignment = Alignment.Top
-                ){
+                ) {
                     Image(
                         painter = painterResource(id = R.drawable.sonic),
                         contentDescription = "imagen pelicula",
@@ -508,6 +540,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
     @Composable
     fun FilmItem(film: Film, navigateFilm: (Int) -> Unit) {
         Row(
@@ -525,10 +558,14 @@ class MainActivity : ComponentActivity() {
             )
             Column {
                 Text(text = film.title ?: "", style = MaterialTheme.typography.titleLarge)
-                Text(text = "Director: ${film.director ?: "N/A"}", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = "Director: ${film.director ?: "N/A"}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
         }
     }
+
     data class Film(
         var id: Int = 0,
         var imageResId: Int = 0,
@@ -606,6 +643,7 @@ class MainActivity : ComponentActivity() {
     private fun DropdownMenuItem(onClick: () -> Unit, interactionSource: @Composable () -> Unit) {
 
     }
+
     fun FilmDataSource.addFilm() {
         val newFilm = Film(
             id = films.size,
@@ -656,8 +694,10 @@ class MainActivity : ComponentActivity() {
             director = "Desconocido",
             year = 2025,
             genre = Film.GENRE_ACTION,
-            format = Film.F)
+            format = Film.F
+        )
     }
+
     @Composable
     fun Greeting(name: String, modifier: Modifier = Modifier) {
         Text(
