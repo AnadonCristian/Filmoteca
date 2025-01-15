@@ -25,11 +25,13 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -60,6 +62,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.input.KeyboardType
+import com.campusdigitalfpD.filmoteca.MainActivity.FilmDataSource.films
+import com.campusdigitalfpD.filmoteca.R
+
 
 const val RESULT_OK = 1
 const val RESULT_CANCELED = 0
@@ -67,7 +72,7 @@ const val RESULT_CANCELED = 0
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
         setContent {
             FilmotecaTheme {
                 val navController = rememberNavController()
@@ -143,31 +148,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    class FilmDataViewModelFactory(private val savedStateHandle: SavedStateHandle)
-        : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(FilmDataViewModel::class.java)) {
-                @Suppress("UNCHECKED_CAST")
-                return FilmDataViewModel(savedStateHandle) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class")
-        }
-    }
-
-
-
-
-
-    class FilmDataViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
-        var editResult = mutableStateOf<Int?>(null)
-            private set
-
-        fun init(savedStateHandle: SavedStateHandle) {
-            savedStateHandle.getLiveData<Int?>("editResult").observeForever {
-                editResult.value = it
-            }
-        }
-    }
 
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -225,20 +205,49 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun FilmListScreen(navigateFilm: (Film) -> Unit,
                        navigateAbout: () -> Unit) {
+        var expanded by remember { mutableStateOf(false) }
+        val context = LocalContext.current
         val films = FilmDataSource.films
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Film List") }
+                    title = { Text("Film List") },
+                    actions = {
+                        IconButton(onClick = { expanded = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "Menu")
+                        }
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                onClick = {
+
+                                    FilmDataSource.addFilm()
+                                    expanded = false
+                                    mostrarToast(context, "Película añadida")
+                                }
+                            ) {
+                                Text("Añadir película")
+                            }
+                            DropdownMenuItem(
+                                onClick = {
+                                    navigateAbout()
+                                    expanded = false
+                                }
+                            ) {
+                                Text("Acerca de")
+                            }
+                        }
+                    }
                 )
             }
         )
 
-
         { innerPadding ->
             LazyColumn(
                 contentPadding = innerPadding,
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(50.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 items(films) { film ->
@@ -532,11 +541,12 @@ class MainActivity : ComponentActivity() {
         var comments: String? = null
     ) {
         override fun toString(): String {
-            // Al convertir a cadena mostramos su título
+
             return title ?: "<Sin título>"
         }
 
         companion object {
+            const val F = 1
             const val FORMAT_DVD = 0
             const val FORMAT_BLURAY = 1
             const val FORMAT_DIGITAL = 2
@@ -596,7 +606,20 @@ class MainActivity : ComponentActivity() {
     private fun DropdownMenuItem(onClick: () -> Unit, interactionSource: @Composable () -> Unit) {
 
     }
-
+    fun FilmDataSource.addFilm() {
+        val newFilm = Film(
+            id = films.size,
+            title = "Nueva Película",
+            director = "Desconocido",
+            year = 2025,
+            genre = Film.GENRE_ACTION,
+            format = Film.FORMAT_DVD,
+            imdbUrl = "http://www.imdb.com",
+            comments = "Sin comentarios",
+            imageResId = R.drawable.sonic
+        )
+        films.add(newFilm)
+    }
 
     fun mandarEmail(context: Context, email: String, asunto: String) {
         val intent = Intent(Intent.ACTION_SENDTO).apply {
@@ -626,7 +649,15 @@ class MainActivity : ComponentActivity() {
 
     }
 
-
+    fun addFilm() {
+        val newFilm = Film(
+            id = films.size,
+            title = "Nueva Película",
+            director = "Desconocido",
+            year = 2025,
+            genre = Film.GENRE_ACTION,
+            format = Film.F)
+    }
     @Composable
     fun Greeting(name: String, modifier: Modifier = Modifier) {
         Text(
